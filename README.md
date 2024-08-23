@@ -65,21 +65,26 @@ Reaction Role Bot allows you to manage reaction-based roles on your Discord serv
    - `color`: (Optional) The HEX color code for the embed.
    - `message_id`: (Optional) The ID of an existing message to update.
      <div style="text-align: center;">
-      <img src="https://f.top4top.io/p_31251dsje9.jpg" alt="AstroMusic Illustration">
+      <img src="https://l.top4top.io/p_3157ev09f1.png" alt="AstroMusic Illustration">
       </div>
 *The embed message Example*
      <div style="text-align: center;">
       <img src="https://c.top4top.io/p_31578h6dr2.png" alt="embed message">
       </div>
 2. **/addreactionrole**
-
+     <div style="text-align: center;">
+      <img src="https://a.top4top.io/p_31571f9gi1.png" alt="embed message">
+      </div>
    Adds a reaction role to an existing embed message.
 
    - `channel`: The channel where the embed message is located.
    - `message_id`: The ID of the embed message.
    - `role`: The role to be assigned.
    - `emoji`: The emoji that will trigger the role assignment.
-
+*Embed message with reactions Example*
+     <div style="text-align: center;">
+      <img src="https://e.top4top.io/p_31574kke04.png" alt="embed message">
+      </div>
 3. **/unsetup**
 
    Deletes an embed message and removes its data from the file.
