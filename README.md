@@ -57,13 +57,19 @@ Reaction Role Bot allows you to manage reaction-based roles on your Discord serv
    - `channel`: The channel where the embed will be sent.
    - `title`: The title of the embed.
    - `description`: The description of the embed.
+     <div style="text-align: center;">
+      <img src="https://b.top4top.io/p_3157urpn91.png" alt="setup">
+       </div>
    - `thumbnail`: (Optional) The URL of the thumbnail image.
    - `image`: (Optional) The URL of the main image.
    - `color`: (Optional) The HEX color code for the embed.
    - `message_id`: (Optional) The ID of an existing message to update.
      <div style="text-align: center;">
       <img src="https://f.top4top.io/p_31251dsje9.jpg" alt="AstroMusic Illustration">
-      <img src="https://g.top4top.io/p_3125i5dah1.jpg" alt="AstroMusic Illustration">
+      </div>
+*The embed message Example*
+     <div style="text-align: center;">
+      <img src="https://c.top4top.io/p_31578h6dr2.png" alt="embed message">
       </div>
 2. **/addreactionrole**
 
