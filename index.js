@@ -8,6 +8,7 @@ const { BOT_TOKEN, CLIENT_ID } = process.env;
 client.once('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
     registerSlashCommandsGlobally();
+    loadReactionRoles();
 });
 
 // Function to register slash commands globally
@@ -197,17 +198,24 @@ client.on('interactionCreate', async interaction => {
         if (serverData[guildId].messages[channel.id]) {
             try {
                 const message = await channel.messages.fetch(messageId);
-                let emojiObject;
 
-                // Check if it's a custom emoji or a standard Discord emoji
-                if (emoji.startsWith('<') && emoji.endsWith('>')) {
+                let emojiObject;
+                
+                // Check if the emoji is custom or standard
+                if (emoji.startsWith('<:') && emoji.endsWith('>')) {
                     // Extract custom emoji ID
-                    const emojiIdMatch = emoji.match(/\d+/);
+                    const emojiIdMatch = emoji.match(/:(\d+)>$/);
                     if (emojiIdMatch) {
-                        emojiObject = guild.emojis.cache.get(emojiIdMatch[0]);
+                        emojiObject = guild.emojis.cache.get(emojiIdMatch[1]);
+                    }
+                } else if (emoji.startsWith('<') && emoji.endsWith('>')) {
+                    // Extract custom emoji ID for emoji in format like <:name:id>
+                    const emojiIdMatch = emoji.match(/:(\d+)>$/);
+                    if (emojiIdMatch) {
+                        emojiObject = guild.emojis.cache.get(emojiIdMatch[1]);
                     }
                 } else {
-                    // It's a standard Discord emoji
+                    // For standard Discord emojis
                     emojiObject = emoji;
                 }
 
@@ -252,28 +260,80 @@ client.on('interactionCreate', async interaction => {
         const guildId = guild.id;
 
         if (serverData[guildId] && serverData[guildId].messages[channel.id]) {
-            const messageIndex = serverData[guildId].messages[channel.id].findIndex(msg => msg.message_id === messageId);
-            if (messageIndex !== -1) {
-                try {
+            try {
+                const messageIndex = serverData[guildId].messages[channel.id].findIndex(msg => msg.message_id === messageId);
+                if (messageIndex !== -1) {
                     const message = await channel.messages.fetch(messageId);
                     await message.delete();
 
                     serverData[guildId].messages[channel.id].splice(messageIndex, 1);
                     fs.writeFileSync('messages.json', JSON.stringify(serverData, null, 2));
-                    await interaction.reply({ content: 'تم حذف الرسالة وإزالتها من الملف بنجاح!', ephemeral: true });
-                } catch (error) {
-                    console.error('Error deleting message:', error);
-                    await interaction.reply({ content: 'حدث خطأ أثناء محاولة حذف الرسالة.', ephemeral: true });
+                    await interaction.reply({ content: 'تم حذف الرسالة بنجاح!', ephemeral: true });
+                } else {
+                    await interaction.reply({ content: 'لم أتمكن من العثور على الرسالة في البيانات.', ephemeral: true });
                 }
-            } else {
-                await interaction.reply({ content: 'لا توجد رسالة تطابق البيانات المقدمة.', ephemeral: true });
+            } catch (error) {
+                console.error('Error deleting message:', error);
+                await interaction.reply({ content: 'حدث خطأ أثناء محاولة حذف الرسالة.', ephemeral: true });
             }
         } else {
-            await interaction.reply({ content: 'لا توجد بيانات تتطابق مع السيرفر المحدد.', ephemeral: true });
+            await interaction.reply({ content: 'لا توجد رسالة تطابق البيانات المقدمة.', ephemeral: true });
         }
     }
 });
 
+async function loadReactionRoles() {
+    let serverData = {};
+    try {
+        serverData = JSON.parse(fs.readFileSync('messages.json', 'utf8'));
+    } catch (error) {
+        console.error('Error reading messages.json:', error);
+        return;
+    }
+
+    for (const [guildId, guildData] of Object.entries(serverData)) {
+        const guild = await client.guilds.fetch(guildId);
+        if (guild) {
+            for (const [channelId, messages] of Object.entries(guildData.messages)) {
+                const channel = await guild.channels.fetch(channelId);
+                if (channel) {
+                    for (const messageData of messages) {
+                        try {
+                            const message = await channel.messages.fetch(messageData.message_id);
+                            for (const reaction of messageData.reactions) {
+                                let emojiObject;
+                                
+                                // Check if the emoji is custom or standard
+                                if (reaction.emoji.startsWith('<:') && reaction.emoji.endsWith('>')) {
+                                    // Extract custom emoji ID
+                                    const emojiIdMatch = reaction.emoji.match(/:(\d+)>$/);
+                                    if (emojiIdMatch) {
+                                        emojiObject = guild.emojis.cache.get(emojiIdMatch[1]);
+                                    }
+                                } else if (reaction.emoji.startsWith('<') && reaction.emoji.endsWith('>')) {
+                                    // Extract custom emoji ID for emoji in format like <:name:id>
+                                    const emojiIdMatch = reaction.emoji.match(/:(\d+)>$/);
+                                    if (emojiIdMatch) {
+                                        emojiObject = guild.emojis.cache.get(emojiIdMatch[1]);
+                                    }
+                                } else {
+                                    // For standard Discord emojis
+                                    emojiObject = reaction.emoji;
+                                }
+
+                                if (emojiObject) {
+                                    await message.react(emojiObject);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error fetching message:', error);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 client.on('messageReactionAdd', async (reaction, user) => {
     if (user.bot) return;
@@ -346,5 +406,6 @@ client.on('messageReactionRemove', async (reaction, user) => {
         }
     }
 });
+
 
 client.login(BOT_TOKEN);
